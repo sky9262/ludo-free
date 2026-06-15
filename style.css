@@ -108,10 +108,14 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 5px rgba(255,201,77
 .game-layout.active { display: grid; grid-template-columns: 248px minmax(420px, 1fr) 242px; gap: 20px; padding: 18px; align-items: stretch; min-height: calc(100vh - 98px); }
 .game-panel, .voice-panel { background: linear-gradient(180deg, rgba(19, 24, 50, .88), rgba(15, 18, 41, .76)); border-radius: 28px; padding: 18px; border: 1px solid rgba(255,255,255,.12); box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 18px 45px rgba(0,0,0,.22); }
 .compact h2 { font-size: 1.45rem; line-height: 1.05; }
-.dice-box { height: 128px; display: grid; place-items: center; border-radius: 30px; background: linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.07)); margin: 18px 0; border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.13); }
+.dice-box { height: 142px; display: grid; place-items: center; border-radius: 32px; background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.18), rgba(255,255,255,.06)); margin: 18px 0; border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.13); perspective: 600px; }
 .dice-box.active { animation: dicePulse 1s infinite; border-color: rgba(255,201,77,.75); box-shadow: 0 0 0 5px rgba(255,201,77,.10), 0 20px 40px rgba(255,201,77,.10), inset 0 1px 0 rgba(255,255,255,.18); }
-#diceValue { font-size: 4.8rem; font-weight: 1000; line-height: .72; color: #fff; text-shadow: 0 10px 26px rgba(0,0,0,.34); }
-#diceHint { color: var(--muted); margin-top: -18px; font-weight: 900; }
+#diceValue { display: grid; place-items: center; min-height: 84px; font-weight: 1000; line-height: .72; color: #fff; text-shadow: 0 10px 26px rgba(0,0,0,.34); }
+.die-idle { font-size: 4.8rem; filter: drop-shadow(0 10px 14px rgba(0,0,0,.35)); }
+.die3d { width: 82px; height: 82px; border-radius: 21px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 6px; padding: 13px; background: linear-gradient(145deg, #ffffff, #e8e5dc 58%, #c9c2b5); border: 3px solid #fff; box-shadow: 0 14px 0 #9c9486, 0 24px 30px rgba(0,0,0,.35), inset 0 4px 0 rgba(255,255,255,.9), inset -8px -10px 18px rgba(0,0,0,.13); transform: rotateX(14deg) rotateZ(-10deg); animation: diceLand .42s ease-out; }
+.die3d i { border-radius: 50%; }
+.die3d .pip { background: radial-gradient(circle at 35% 35%, #4b5062, #111425); box-shadow: inset 0 2px 3px rgba(255,255,255,.18), 0 1px 0 rgba(255,255,255,.55); }
+#diceHint { color: var(--muted); margin-top: -10px; font-weight: 900; }
 .timer-bar { height: 11px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin: 14px 0 18px; }
 .timer-bar span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--green), var(--accent), var(--red)); transition: width .2s linear; border-radius: inherit; }
 .game-log { max-height: 220px; overflow: auto; font-size: .92rem; line-height: 1.38; padding-right: 4px; }
@@ -164,14 +168,25 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 5px rgba(255,201,77
 .finish-yellow { background: linear-gradient(145deg, rgba(255,211,79,.55), rgba(255,211,79,.30)); }
 .center { background: conic-gradient(from 45deg, #3895ff 0 25%, #ffd34f 0 50%, #20d782 0 75%, #ff4667 0); border-color: rgba(255,255,255,.18); }
 .yard-spot::before { content: ''; position: absolute; width: 68%; height: 68%; border-radius: 999px; background: rgba(255,255,255,.74); box-shadow: inset 0 0 0 4px rgba(255,255,255,.52), 0 10px 18px rgba(0,0,0,.13); z-index: 0; }
-.token { width: 72%; height: 72%; min-width: 24px; min-height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,.94); box-shadow: 0 8px 15px rgba(0,0,0,.30), inset 0 2px 0 rgba(255,255,255,.34), inset 0 -5px 10px rgba(0,0,0,.16); z-index: 2; display: grid; place-items: center; color: #fff; font-weight: 1000; font-size: .78rem; transform: translate(var(--tx,0), var(--ty,0)); transition: transform .15s ease, filter .15s ease; }
-.token::before { content: ''; position: absolute; top: 14%; left: 22%; width: 38%; height: 20%; border-radius: 999px; background: rgba(255,255,255,.65); }
-.token:hover { filter: brightness(1.08); }
-.token.red { background: linear-gradient(145deg, #ff6b82, #da2349); }
-.token.blue { background: linear-gradient(145deg, #67b3ff, #166fdb); }
-.token.green { background: linear-gradient(145deg, #39e895, #0b9b55); }
-.token.yellow { background: linear-gradient(145deg, #ffe27a, #e0a912); color: #352707; }
+.token { width: 86%; height: 96%; min-width: 28px; min-height: 34px; border: 0; background: transparent; z-index: 2; display: grid; place-items: center; transform: translate(var(--tx,0), var(--ty,0)); transition: transform .18s ease, filter .15s ease; padding: 0; overflow: visible; }
+.token:hover { filter: brightness(1.08); transform: translate(var(--tx,0), calc(var(--ty,0) - 4%)); }
+.pawn3d { --piece: #ff4667; --piece-dark: #b31531; position: relative; width: 100%; height: 100%; display: block; filter: drop-shadow(0 7px 5px rgba(0,0,0,.32)); }
+.token.valid .pawn3d::before { content: ''; position: absolute; left: 50%; bottom: -6%; width: 92%; height: 30%; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse, rgba(255,236,102,.85), rgba(255,201,77,.22) 58%, transparent 70%); box-shadow: 0 0 18px rgba(255,214,78,.85); animation: validHalo .8s infinite alternate; }
+.pawn3d i { position: absolute; left: 50%; transform: translateX(-50%); display: block; }
+.pawn-head { top: 2%; width: 42%; height: 32%; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #fff8, transparent 22%), linear-gradient(145deg, color-mix(in srgb, var(--piece), white 28%), var(--piece) 54%, var(--piece-dark)); box-shadow: inset -4px -5px 8px rgba(0,0,0,.18), inset 3px 3px 6px rgba(255,255,255,.32); }
+.pawn-neck { top: 29%; width: 26%; height: 18%; border-radius: 999px; background: linear-gradient(90deg, var(--piece-dark), var(--piece), var(--piece-dark)); }
+.pawn-body { top: 36%; width: 54%; height: 40%; border-radius: 55% 55% 44% 44% / 72% 72% 32% 32%; background: radial-gradient(circle at 35% 20%, #fff8, transparent 18%), linear-gradient(145deg, color-mix(in srgb, var(--piece), white 20%), var(--piece) 52%, var(--piece-dark)); box-shadow: inset -5px -8px 12px rgba(0,0,0,.20), inset 4px 4px 8px rgba(255,255,255,.22); }
+.pawn-base { bottom: 0; width: 74%; height: 27%; border-radius: 50% / 42%; background: radial-gradient(ellipse at 35% 22%, #fff7, transparent 22%), linear-gradient(180deg, color-mix(in srgb, var(--piece), white 18%), var(--piece-dark)); box-shadow: 0 5px 0 color-mix(in srgb, var(--piece-dark), black 24%), inset 0 5px 7px rgba(255,255,255,.22); }
+.token-num { position: absolute; z-index: 3; top: 42%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: .62rem; font-weight: 1000; line-height: 1; text-shadow: 0 1px 2px rgba(0,0,0,.75); pointer-events: none; }
+.token.red .pawn3d { --piece: #ff4967; --piece-dark: #b31331; }
+.token.blue .pawn3d { --piece: #2797ff; --piece-dark: #0759bb; }
+.token.green .pawn3d { --piece: #22d970; --piece-dark: #087f3b; }
+.token.yellow .pawn3d { --piece: #ffd441; --piece-dark: #b87900; }
+.token.yellow .token-num { color: #3a2700; text-shadow: 0 1px 1px rgba(255,255,255,.65); }
 .token.valid { animation: tokenGlow .72s infinite alternate; cursor: pointer; }
+.token.valid .pawn3d { filter: drop-shadow(0 8px 5px rgba(0,0,0,.32)) drop-shadow(0 0 12px rgba(255,229,75,.95)); }
+.token.valid::after { content: ''; position: absolute; inset: -4px; border: 3px solid rgba(255,237,88,.95); border-radius: 50%; box-shadow: 0 0 14px rgba(255,224,74,.9); animation: validRing .72s infinite alternate; pointer-events: none; }
+.token.last-move { animation: tokenPop .55s ease-out; }
 
 .toast { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(8px); padding: 12px 18px; border-radius: 999px; background: rgba(8, 11, 29, .92); color: #fff; opacity: 0; pointer-events: none; transition: .2s; z-index: 5; box-shadow: 0 12px 32px rgba(0,0,0,.28); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -397,9 +412,13 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 5px rgba(255,201,77
 }
 @keyframes pulse { 0%,100% { opacity: .70; transform: scale(1); } 50% { opacity: 1; transform: scale(1.01); } }
 @keyframes dicePulse { 0%,100% { transform: scale(1) rotate(-1deg); } 50% { transform: scale(1.045) rotate(1deg); } }
+@keyframes diceLand { from { transform: rotateX(60deg) rotateZ(-40deg) scale(.82); opacity: .3; } to { transform: rotateX(14deg) rotateZ(-10deg) scale(1); opacity: 1; } }
 @keyframes diceFloat { 0%,100% { transform: rotate(13deg) translateY(0); } 50% { transform: rotate(20deg) translateY(-10px); } }
 @keyframes activePlayerPulse { 0%,100% { filter: brightness(1); box-shadow: 0 10px 0 rgba(0,0,0,.20), 0 18px 38px rgba(0,0,0,.26), 0 0 0 0 rgba(255,201,77,.0); } 50% { filter: brightness(1.16); box-shadow: 0 10px 0 rgba(0,0,0,.20), 0 18px 38px rgba(0,0,0,.26), 0 0 0 7px rgba(255,201,77,.18); } }
-@keyframes tokenGlow { from { box-shadow: 0 0 0 4px rgba(255,201,77,.42), 0 8px 15px rgba(0,0,0,.30), inset 0 2px 0 rgba(255,255,255,.34); } to { box-shadow: 0 0 0 10px rgba(255,201,77,.18), 0 8px 15px rgba(0,0,0,.30), inset 0 2px 0 rgba(255,255,255,.34); } }
+@keyframes tokenGlow { from { filter: drop-shadow(0 0 0 rgba(255,201,77,0)); } to { filter: drop-shadow(0 0 12px rgba(255,201,77,.95)); } }
+@keyframes validHalo { from { opacity: .45; transform: translateX(-50%) scale(.92); } to { opacity: 1; transform: translateX(-50%) scale(1.18); } }
+@keyframes validRing { from { opacity: .45; transform: scale(.9); } to { opacity: 1; transform: scale(1.08); } }
+@keyframes tokenPop { 0% { transform: translate(var(--tx,0), var(--ty,0)) scale(.72); } 60% { transform: translate(var(--tx,0), calc(var(--ty,0) - 12%)) scale(1.12); } 100% { transform: translate(var(--tx,0), var(--ty,0)) scale(1); } }
 
 @media (max-width: 1040px) {
   .game-layout.active { grid-template-columns: 1fr; min-height: auto; }
@@ -426,6 +445,9 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 5px rgba(255,201,77
   .player-slots { grid-template-columns: 1fr; }
   .lobby-actions, .modal-actions { flex-direction: column; }
   .game-layout.active { padding: 10px; gap: 12px; }
+  .board-wrap { order: 1; padding: 58px 2px; }
+  .game-panel { order: 2; }
+  .voice-panel { order: 3; }
   .game-panel, .voice-panel { grid-template-columns: 1fr; }
   .game-player-card { min-width: 116px; grid-template-columns: 34px 1fr; border-width: 2px; border-radius: 16px; }
   .player-badge-avatar { width: 34px; height: 34px; border-radius: 12px; font-size: 1.1rem; }

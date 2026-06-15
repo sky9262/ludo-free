@@ -565,7 +565,8 @@
 
   function tokenHtml(item, offset) {
     const validCls = item.valid ? ' valid' : '';
-    return `<button class="token ${item.player.color}${validCls}" data-token="${item.index}" title="${escapeHtml(item.player.nickname)} token ${item.index + 1}" style="--tx:${offset.x}%;--ty:${offset.y}%">${item.index + 1}</button>`;
+    const last = state.lastMove?.type === 'move' && state.lastMove.playerId === item.player.id && state.lastMove.tokenIndex === item.index ? ' last-move' : '';
+    return `<button class="token ${item.player.color}${validCls}${last}" data-token="${item.index}" title="${escapeHtml(item.player.nickname)} token ${item.index + 1}" style="--tx:${offset.x}%;--ty:${offset.y}%"><span class="pawn3d" aria-hidden="true"><i class="pawn-head"></i><i class="pawn-neck"></i><i class="pawn-body"></i><i class="pawn-base"></i></span><span class="token-num">${item.index + 1}</span></button>`;
   }
 
   function offsetFor(idx, total) {
@@ -575,12 +576,24 @@
     return positions[idx % positions.length];
   }
 
+  function diceFaceHtml(value) {
+    if (!value) return '<span class="die-idle">✦</span>';
+    const spots = {
+      1: [5],
+      2: [1, 9],
+      3: [1, 5, 9],
+      4: [1, 3, 7, 9],
+      5: [1, 3, 5, 7, 9],
+      6: [1, 3, 4, 6, 7, 9]
+    }[value];
+    return `<span class="die3d" aria-label="Dice ${value}">${Array.from({ length: 9 }, (_, i) => `<i class="${spots.includes(i + 1) ? 'pip' : ''}"></i>`).join('')}</span>`;
+  }
+
   function renderPanels() {
     const turn = state.players[state.currentTurn];
     const winner = state.winnerId ? getPlayer(state.winnerId) : null;
     $('turnTitle').textContent = winner ? `${winner.nickname} wins!` : (turn ? `${turn.nickname}'s turn` : 'Waiting...');
-    const diceFaces = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' };
-    $('diceValue').textContent = state.dice ? diceFaces[state.dice] : '✦';
+    $('diceValue').innerHTML = diceFaceHtml(state.dice);
     $('diceHint').textContent = winner ? 'Game over' : (state.rolled ? 'Move token' : (turn?.id === myId ? 'Your roll' : (isBotPlayer(turn) ? 'Bot thinking' : 'Waiting')));
     $('diceBox').classList.toggle('active', !winner && turn?.id === myId && !state.rolled);
     $('diceBox').classList.toggle('rolled', Boolean(state.dice));
