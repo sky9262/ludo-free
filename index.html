@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ludo Free Party</title>
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=proper-ludo-4" />
 </head>
 <body>
   <div class="app-shell">
@@ -33,7 +33,8 @@
           <p class="eyebrow">No login • Static site • Live voice</p>
           <h1><span class="logo-word"><b class="l-red">L</b><b class="l-blue">U</b><b class="l-gold">D</b><b class="l-green">O</b></span><em>FREE</em></h1>
           <div class="mini-board-preview" aria-hidden="true">
-            <div class="preview-home red"></div><div class="preview-home blue"></div><div class="preview-center"></div><div class="preview-home green"></div><div class="preview-home yellow"></div>
+            <div class="preview-home red"><i></i><i></i><i></i><i></i></div><div class="preview-home blue"><i></i><i></i><i></i><i></i></div><div class="preview-center"></div><div class="preview-home green"><i></i><i></i><i></i><i></i></div><div class="preview-home yellow"><i></i><i></i><i></i><i></i></div>
+            <span class="preview-dice">⚄</span>
           </div>
         </div>
 
@@ -48,8 +49,8 @@
           <button id="primaryAction" type="submit" class="primary-btn play-btn">Create Private Room</button>
           <button id="offlineDemoBtn" type="button" class="ghost-btn offline-btn">Offline 4 Players</button>
           <div class="menu-row">
-            <button type="button" class="ghost-btn menu-btn">👤 Profile</button>
-            <button type="button" class="ghost-btn menu-btn">⚙️ Settings</button>
+            <button id="profileBtn" type="button" class="ghost-btn menu-btn" onclick="window.ludoToast && window.ludoToast('Profile is saved on this device.')">👤 Profile</button>
+            <button id="settingsBtn" type="button" class="ghost-btn menu-btn" onclick="window.ludoToast && window.ludoToast('Settings are inside the game: mute mic and adjust each player volume.')">⚙️ Settings</button>
           </div>
         </form>
       </section>
@@ -90,6 +91,7 @@
         </aside>
 
         <div class="board-wrap">
+          <div id="gamePlayers" class="game-players" aria-label="Players"></div>
           <div id="board" class="ludo-board" aria-label="Ludo board"></div>
           <div id="toast" class="toast"></div>
         </div>
@@ -119,6 +121,6 @@
 
   <template id="audioTemplate"><audio autoplay playsinline></audio></template>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=proper-ludo-4"></script>
 </body>
 </html>

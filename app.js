@@ -47,6 +47,7 @@
   let pendingLaunch = false;
   let lastTick = 0;
   let autoRollTimer = null;
+  let botTurnTimer = null;
 
   let state = initialState();
 
@@ -61,7 +62,9 @@
       rolled: false,
       turnStartedAt: Date.now(),
       tokens: {},
-      log: []
+      log: [],
+      winnerId: null,
+      lastMove: null
     };
   }
 
@@ -102,6 +105,8 @@
       showMicModal();
     });
     $('offlineDemoBtn').addEventListener('click', () => startOfflineDemo());
+    $('profileBtn')?.addEventListener('click', () => toast(`Profile saved locally as ${$('nickname').value.trim() || localStorage.getItem('ludo.nickname') || 'Player'}.`));
+    $('settingsBtn')?.addEventListener('click', () => toast('Settings: sound, voice mute, and volume controls are available in-game.'));
   }
 
   function showMicModal() {
@@ -359,32 +364,72 @@
   }
 
   function hostRoll(from, forced = false) {
-    if (!isCurrentPlayer(from) || state.rolled) return;
+    if (state.winnerId || !isCurrentPlayer(from) || state.rolled) return;
     state.dice = 1 + Math.floor(Math.random() * 6);
     state.rolled = true;
+    state.lastMove = { type: 'roll', playerId: from, dice: state.dice, at: Date.now() };
     const p = getPlayer(from);
     logLine(`${p.nickname} rolled ${state.dice}${forced ? ' (auto)' : ''}.`);
+    toast(`${p.nickname} rolled ${state.dice}`);
     const moves = validMoves(from, state.dice);
     if (!moves.length) {
       logLine(`${p.nickname} has no legal moves.`);
-      setTimeout(nextTurn, 850);
+      setTimeout(nextTurn, 900);
+    } else if (isBotPlayer(p)) {
+      clearTimeout(botTurnTimer);
+      botTurnTimer = setTimeout(() => botChooseMove(from), 850);
     }
     sync();
   }
 
+  function botChooseMove(playerId) {
+    if (!isHost || state.winnerId || !isCurrentPlayer(playerId) || !state.rolled) return;
+    const moves = validMoves(playerId, state.dice);
+    if (!moves.length) return;
+    const chosen = chooseBestMove(playerId, moves, state.dice);
+    hostMove(playerId, chosen);
+  }
+
+  function chooseBestMove(playerId, moves, dice) {
+    const p = getPlayer(playerId);
+    const tokens = state.tokens[playerId];
+    const captureMove = moves.find((idx) => {
+      const pos = tokens[idx].pos === -1 ? 0 : tokens[idx].pos + dice;
+      if (pos < 0 || pos > 51) return false;
+      const global = (starts[p.color] + pos) % 52;
+      if (safeGlobal.has(global)) return false;
+      return state.players.some((op) => op.id !== playerId && (state.tokens[op.id] || []).some((t) => t.pos >= 0 && t.pos <= 51 && (starts[op.color] + t.pos) % 52 === global));
+    });
+    if (captureMove !== undefined) return captureMove;
+    const finishMove = moves.find((idx) => (tokens[idx].pos === -1 ? 0 : tokens[idx].pos + dice) >= 57);
+    if (finishMove !== undefined) return finishMove;
+    const enterMove = moves.find((idx) => tokens[idx].pos === -1);
+    if (enterMove !== undefined) return enterMove;
+    return moves.slice().sort((a, b) => tokens[b].pos - tokens[a].pos)[0];
+  }
+
+  function isBotPlayer(p) {
+    return Boolean(p && (p.bot || String(p.id).startsWith('bot-')));
+  }
+
   function hostMove(from, tokenIndex) {
-    if (!isCurrentPlayer(from) || !state.rolled || state.dice == null) return;
+    if (state.winnerId || !isCurrentPlayer(from) || !state.rolled || state.dice == null) return;
     const moves = validMoves(from, state.dice);
     if (!moves.includes(tokenIndex)) return;
     const token = state.tokens[from][tokenIndex];
+    const fromPos = token.pos;
     if (token.pos === -1) token.pos = 0;
     else token.pos += state.dice;
     if (token.pos >= 57) token.finished = true;
     const p = getPlayer(from);
+    state.lastMove = { type: 'move', playerId: from, tokenIndex, fromPos, toPos: token.pos, at: Date.now() };
     logLine(`${p.nickname} moved token ${tokenIndex + 1}.`);
+    toast(`${p.nickname} moved token ${tokenIndex + 1}`);
     captureAt(from, token.pos);
     if (state.tokens[from].every((t) => t.finished)) {
-      logLine(`${p.nickname} wins!`);
+      state.winnerId = from;
+      logLine(`${p.nickname} wins the match!`);
+      toast(`🏆 ${p.nickname} wins!`);
       state.rolled = true;
       sync();
       return;
@@ -402,10 +447,17 @@
   }
 
   function nextTurn() {
-    state.currentTurn = (state.currentTurn + 1) % state.players.length;
+    if (state.winnerId) return sync();
+    const activePlayers = state.players.filter((p) => p.online !== false);
+    if (!activePlayers.length) return;
+    do {
+      state.currentTurn = (state.currentTurn + 1) % state.players.length;
+    } while (state.players[state.currentTurn]?.online === false);
     state.dice = null;
     state.rolled = false;
     state.turnStartedAt = Date.now();
+    const p = state.players[state.currentTurn];
+    if (p) logLine(`${p.nickname}'s turn.`);
     sync();
   }
 
@@ -440,6 +492,7 @@
         if (theirGlobal === global) {
           t.pos = -1;
           logLine(`${mover.nickname} captured ${p.nickname}'s token ${i + 1}.`);
+          toast(`💥 ${mover.nickname} captured ${p.nickname}!`);
         }
       });
     }
@@ -524,24 +577,39 @@
 
   function renderPanels() {
     const turn = state.players[state.currentTurn];
-    $('turnTitle').textContent = turn ? `${turn.nickname}'s turn` : 'Waiting...';
+    const winner = state.winnerId ? getPlayer(state.winnerId) : null;
+    $('turnTitle').textContent = winner ? `${winner.nickname} wins!` : (turn ? `${turn.nickname}'s turn` : 'Waiting...');
     const diceFaces = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' };
     $('diceValue').textContent = state.dice ? diceFaces[state.dice] : '✦';
-    $('diceHint').textContent = state.rolled ? 'Move token' : (turn?.id === myId ? 'Your roll' : 'Waiting');
-    $('diceBox').classList.toggle('active', turn?.id === myId && !state.rolled);
-    $('rollDiceBtn').disabled = !(turn?.id === myId && !state.rolled);
+    $('diceHint').textContent = winner ? 'Game over' : (state.rolled ? 'Move token' : (turn?.id === myId ? 'Your roll' : (isBotPlayer(turn) ? 'Bot thinking' : 'Waiting')));
+    $('diceBox').classList.toggle('active', !winner && turn?.id === myId && !state.rolled);
+    $('diceBox').classList.toggle('rolled', Boolean(state.dice));
+    $('rollDiceBtn').disabled = Boolean(winner) || !(turn?.id === myId && !state.rolled);
+    $('rollDiceBtn').textContent = winner ? 'Game Finished' : 'Roll Dice';
     $('gameLog').innerHTML = state.log.map((l) => `<div><strong>${l.at}</strong> ${escapeHtml(l.text)}</div>`).join('');
+    const valid = state.rolled && isCurrentPlayer(myId) ? validMoves(myId, state.dice) : [];
+    $('gamePlayers').innerHTML = state.players.map((p, i) => {
+      const finished = (state.tokens[p.id] || []).filter((t) => t.finished).length;
+      const active = turn?.id === p.id && !winner;
+      const win = winner?.id === p.id;
+      return `<div class="game-player-card ${p.color} pos-${i} ${active ? 'active-turn' : ''} ${win ? 'winner' : ''}"><span class="player-badge-avatar">${avatars[p.avatar]}</span><div><strong>${escapeHtml(p.nickname)}</strong><small>${colorNames[p.color]} • ${finished}/4 home ${p.bot ? '• CPU' : ''}</small></div></div>`;
+    }).join('');
   }
 
   function manageAutoRoll() {
     clearTimeout(autoRollTimer);
+    clearTimeout(botTurnTimer);
     const turn = state.players[state.currentTurn];
+    if (state.winnerId || !turn) return;
     const elapsed = Date.now() - state.turnStartedAt;
     $('timerBar').firstElementChild.style.width = `${Math.min(100, elapsed / 150)}%`;
     if (isHost && turn && !state.rolled) {
+      const delay = isBotPlayer(turn) ? 900 : Math.max(0, 15000 - elapsed);
       autoRollTimer = setTimeout(() => {
-        if (!state.rolled && state.players[state.currentTurn]?.id === turn.id) hostRoll(turn.id, true);
-      }, Math.max(0, 15000 - elapsed));
+        if (!state.rolled && state.players[state.currentTurn]?.id === turn.id) hostRoll(turn.id, isBotPlayer(turn) || true);
+      }, delay);
+    } else if (isHost && turn && state.rolled && isBotPlayer(turn)) {
+      botTurnTimer = setTimeout(() => botChooseMove(turn.id), 750);
     }
     requestAnimationFrame(() => {
       if (state.phase === 'game' && Date.now() - lastTick > 120) {
@@ -556,10 +624,14 @@
   $('diceBox').addEventListener('click', requestRoll);
   $('diceBox').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') requestRoll(); });
   function requestRoll() {
+    const turn = state.players[state.currentTurn];
+    if (state.winnerId || isBotPlayer(turn)) return;
     if (isHost) hostRoll(myId);
     else sendTo(hostId, { type: 'ROLL_REQUEST' });
   }
   function requestMove(tokenIndex) {
+    const turn = state.players[state.currentTurn];
+    if (state.winnerId || isBotPlayer(turn)) return;
     if (isHost) hostMove(myId, tokenIndex);
     else sendTo(hostId, { type: 'MOVE_REQUEST', tokenIndex });
   }
@@ -633,10 +705,12 @@
     state.started = true;
     state.players = [
       { id: myId, nickname: profile.nickname, avatar: profile.avatar, color: 'red', online: true, isHost: true },
-      { id: 'bot-blue', nickname: 'Blue Bot', avatar: 1, color: 'blue', online: true, isHost: false }
+      { id: 'bot-blue', nickname: 'Blue CPU', avatar: 1, color: 'blue', online: true, isHost: false, bot: true },
+      { id: 'bot-yellow', nickname: 'Yellow CPU', avatar: 5, color: 'yellow', online: true, isHost: false, bot: true },
+      { id: 'bot-green', nickname: 'Green CPU', avatar: 4, color: 'green', online: true, isHost: false, bot: true }
     ];
     state.players.forEach((p) => state.tokens[p.id] = Array.from({ length: 4 }, () => ({ pos: -1, finished: false })));
-    state.log = [{ text: 'Offline demo launched. Roll as red; blue auto-rolls after 15 seconds.', at: new Date().toLocaleTimeString() }];
+    state.log = [{ text: 'Offline 4-player match launched. You play red; CPUs play blue, yellow, and green.', at: new Date().toLocaleTimeString() }];
     setStatus('Offline demo', true);
     showScreen('gameScreen');
     renderGame();
@@ -646,11 +720,24 @@
     return String(s).replace(/[&<>'"]/g, (ch) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[ch]));
   }
   function toast(msg) {
-    const el = $('toast') || document.createElement('div');
+    let el = (document.querySelector('#gameScreen.active #toast')) || $('globalToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'globalToast';
+      el.className = 'toast global-toast';
+      document.body.appendChild(el);
+    }
     el.textContent = msg;
     el.classList.add('show');
     setTimeout(() => el.classList.remove('show'), 2400);
   }
+
+  window.ludoToast = toast;
+
+  document.addEventListener('click', (e) => {
+    if (e.target?.id === 'profileBtn') toast(`Profile saved locally as ${$('nickname')?.value.trim() || localStorage.getItem('ludo.nickname') || 'Player'}.`);
+    if (e.target?.id === 'settingsBtn') toast('Settings: voice mute and per-player volume controls are available in-game.');
+  });
 
   initLanding();
   showScreen('landingScreen');
