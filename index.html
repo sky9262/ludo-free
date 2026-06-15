@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ludo Free Party</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">◆</span><span>Ludo Free</span></div>
+      <div id="connectionStatus" class="status-pill">Offline</div>
+    </header>
+
+    <main>
+      <section id="landingScreen" class="screen active landing-card">
+        <div class="hero-copy">
+          <p class="eyebrow">No login • Static site • Live party room</p>
+          <h1>Play Ludo with friends and talk while you roll.</h1>
+          <p class="subcopy">Create a private WebRTC room or join from an invite link. The host browser validates every move, so everybody sees one synchronized board.</p>
+        </div>
+
+        <form id="profileForm" class="profile-panel">
+          <label for="nickname">Nickname</label>
+          <input id="nickname" name="nickname" maxlength="12" autocomplete="nickname" placeholder="Akash" required />
+          <div class="avatar-label">Choose avatar</div>
+          <div id="avatarCarousel" class="avatar-carousel" aria-label="Avatar choices"></div>
+          <div class="mic-explainer">
+            <strong>Voice chat:</strong> after you continue, your browser may ask for microphone permission. Click Allow if you want to speak with friends. You can mute anytime.
+          </div>
+          <button id="primaryAction" type="submit" class="primary-btn">Create Private Room</button>
+          <button id="offlineDemoBtn" type="button" class="ghost-btn">Open Offline Demo</button>
+        </form>
+      </section>
+
+      <section id="lobbyScreen" class="screen lobby-card">
+        <div class="section-title">
+          <p class="eyebrow">Lobby</p>
+          <h2>Waiting room</h2>
+          <p id="roomRoleText">Preparing room...</p>
+        </div>
+        <div id="playerSlots" class="player-slots"></div>
+        <div class="invite-box">
+          <div>
+            <span>Invite link</span>
+            <input id="inviteLink" readonly value="" />
+          </div>
+          <button id="copyInviteBtn" type="button">Copy Invite Link</button>
+        </div>
+        <div class="lobby-actions">
+          <button id="launchGameBtn" class="primary-btn" disabled>Launch Game</button>
+          <button id="leaveRoomBtn" class="ghost-btn">Leave Room</button>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="screen game-layout">
+        <aside class="game-panel">
+          <div class="section-title compact">
+            <p class="eyebrow">Match</p>
+            <h2 id="turnTitle">Waiting...</h2>
+          </div>
+          <div id="diceBox" class="dice-box" role="button" tabindex="0" aria-label="Roll dice">
+            <span id="diceValue">–</span>
+            <small id="diceHint">Roll</small>
+          </div>
+          <button id="rollDiceBtn" class="primary-btn">Roll Dice</button>
+          <div id="timerBar" class="timer-bar"><span></span></div>
+          <div id="gameLog" class="game-log"></div>
+        </aside>
+
+        <div class="board-wrap">
+          <div id="board" class="ludo-board" aria-label="Ludo board"></div>
+          <div id="toast" class="toast"></div>
+        </div>
+
+        <aside class="voice-panel">
+          <div class="section-title compact">
+            <p class="eyebrow">Voice</p>
+            <h2>Party chat</h2>
+          </div>
+          <button id="muteBtn" class="ghost-btn">Mute Mic</button>
+          <div id="voiceList" class="voice-list"></div>
+        </aside>
+      </section>
+
+      <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card">
+          <h3 id="modalTitle">Microphone permission</h3>
+          <p id="modalText">Ludo Free uses your mic so you can talk to friends. Please click Allow on the browser prompt next. You can also continue muted.</p>
+          <div class="modal-actions">
+            <button id="modalAllowBtn" class="primary-btn">Enable Mic</button>
+            <button id="modalSkipBtn" class="ghost-btn">Continue Muted</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <template id="audioTemplate"><audio autoplay playsinline></audio></template>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
