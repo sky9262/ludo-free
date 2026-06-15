@@ -14,23 +14,43 @@
     </header>
 
     <main>
-      <section id="landingScreen" class="screen active landing-card">
-        <div class="hero-copy">
-          <p class="eyebrow">No login • Static site • Live party room</p>
-          <h1>Play Ludo with friends and talk while you roll.</h1>
-          <p class="subcopy">Create a private WebRTC room or join from an invite link. The host browser validates every move, so everybody sees one synchronized board.</p>
+      <section id="landingScreen" class="screen active landing-card arcade-menu">
+        <div class="arcade-hud">
+          <div class="profile-chip">
+            <div class="profile-face">👦</div>
+            <div><strong>Player One</strong><span>🏆 5,680</span></div>
+          </div>
+          <div class="currency-row">
+            <div class="coin-chip">🪙 <strong>12,450</strong><b>+</b></div>
+            <div class="coin-chip gem">💎 <strong>320</strong><b>+</b></div>
+          </div>
+          <div class="reward-chip">🎁<span>Rewards</span></div>
         </div>
 
-        <form id="profileForm" class="profile-panel">
+        <div class="hero-copy arcade-hero">
+          <div class="daily-card">🎟️<strong>Daily Bonus</strong><span>23:59:12</span></div>
+          <div class="free-card">🪙<strong>Free Coins</strong><span>▶</span></div>
+          <p class="eyebrow">No login • Static site • Live voice</p>
+          <h1><span class="logo-word"><b class="l-red">L</b><b class="l-blue">U</b><b class="l-gold">D</b><b class="l-green">O</b></span><em>FREE</em></h1>
+          <div class="mini-board-preview" aria-hidden="true">
+            <div class="preview-home red"></div><div class="preview-home blue"></div><div class="preview-center"></div><div class="preview-home green"></div><div class="preview-home yellow"></div>
+          </div>
+        </div>
+
+        <form id="profileForm" class="profile-panel arcade-panel">
           <label for="nickname">Nickname</label>
-          <input id="nickname" name="nickname" maxlength="12" autocomplete="nickname" placeholder="Akash" required />
+          <input id="nickname" name="nickname" maxlength="12" autocomplete="nickname" placeholder="Akash" />
           <div class="avatar-label">Choose avatar</div>
           <div id="avatarCarousel" class="avatar-carousel" aria-label="Avatar choices"></div>
           <div class="mic-explainer">
-            <strong>Voice chat:</strong> after you continue, your browser may ask for microphone permission. Click Allow if you want to speak with friends. You can mute anytime.
+            <strong>Voice chat:</strong> click Allow on the browser prompt if you want to talk. You can mute anytime.
           </div>
-          <button id="primaryAction" type="submit" class="primary-btn">Create Private Room</button>
-          <button id="offlineDemoBtn" type="button" class="ghost-btn">Open Offline Demo</button>
+          <button id="primaryAction" type="submit" class="primary-btn play-btn">Create Private Room</button>
+          <button id="offlineDemoBtn" type="button" class="ghost-btn offline-btn">Offline 4 Players</button>
+          <div class="menu-row">
+            <button type="button" class="ghost-btn menu-btn">👤 Profile</button>
+            <button type="button" class="ghost-btn menu-btn">⚙️ Settings</button>
+          </div>
         </form>
       </section>
 

@@ -81,7 +81,7 @@
 
   function initLanding() {
     $('nickname').value = nickname;
-    $('primaryAction').textContent = roomFromUrl ? 'Join Lobby' : 'Create Private Room';
+    $('primaryAction').textContent = roomFromUrl ? 'Join Lobby ›' : 'Play Online ›';
     $('avatarCarousel').innerHTML = avatars.map((a, i) => `<button type="button" class="avatar-choice ${i === selectedAvatar ? 'selected' : ''}" data-avatar="${i}" aria-label="Avatar ${i + 1}">${a}</button>`).join('');
     $('avatarCarousel').addEventListener('click', (e) => {
       const btn = e.target.closest('[data-avatar]');
@@ -93,7 +93,7 @@
     $('nickname').focus();
     $('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = $('nickname').value.trim().slice(0, 12);
+      const name = ($('nickname').value.trim().slice(0, 12) || 'Player');
       if (!name) return toast('Please enter a nickname.');
       nickname = name;
       localStorage.setItem('ludo.nickname', nickname);
