@@ -485,8 +485,9 @@
 
   function paintHome(cells, color, r0, c0) {
     for (let r = r0; r < r0 + 6; r++) for (let c = c0; c < c0 + 6; c++) cells[r][c].cls += ` home-${color}`;
-    cells[r0 + 1][c0 + 1].html = '<div class="yard"><span class="yard-dot"></span><span class="yard-dot"></span><span class="yard-dot"></span><span class="yard-dot"></span></div>';
-    cells[r0 + 1][c0 + 1].cls += ' yard-cell';
+    (yardCells[color] || []).forEach(([r, c]) => {
+      cells[r][c].cls += ` yard-spot yard-${color}`;
+    });
   }
 
   function collectTokenPlacements() {
@@ -524,7 +525,8 @@
   function renderPanels() {
     const turn = state.players[state.currentTurn];
     $('turnTitle').textContent = turn ? `${turn.nickname}'s turn` : 'Waiting...';
-    $('diceValue').textContent = state.dice || '–';
+    const diceFaces = { 1: '⚀', 2: '⚁', 3: '⚂', 4: '⚃', 5: '⚄', 6: '⚅' };
+    $('diceValue').textContent = state.dice ? diceFaces[state.dice] : '✦';
     $('diceHint').textContent = state.rolled ? 'Move token' : (turn?.id === myId ? 'Your roll' : 'Waiting');
     $('diceBox').classList.toggle('active', turn?.id === myId && !state.rolled);
     $('rollDiceBtn').disabled = !(turn?.id === myId && !state.rolled);
